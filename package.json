@@ -1,5 +1,5 @@
 {
-  "name": "@mgcrea/react-native-dnd",
+  "name": "@kiosinc/react-native-dnd",
   "version": "2.2.0",
   "description": "Modern and easy-to-use drag&drop library for react-native",
   "author": "Olivier Louvignes <olivier@mgcrea.io>",
