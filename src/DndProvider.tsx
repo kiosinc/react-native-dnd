@@ -9,6 +9,7 @@ import {
   PanGestureHandlerEventPayload,
   State,
 } from "react-native-gesture-handler";
+// @ts-expect-error ignore ts check
 import ReactNativeHapticFeedback, { HapticFeedbackTypes } from "react-native-haptic-feedback";
 import {
   cancelAnimation,
