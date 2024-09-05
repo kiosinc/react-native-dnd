@@ -29,11 +29,13 @@ jobs:
           cache: "pnpm"
       - name: Install 🪄
         run: pnpm install
+      - name: pnpm version check
+        run: pnpm -v
       - name: Build 💎
         run: pnpm run build
-      - name: Initialise the NPM config
-        run: npm config set //registry.npmjs.org/:_authToken $NPM_TOKEN
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - name: Release 💎
-        run: pnpm run release
+      # - name: Initialise the NPM config
+      #   run: npm config set //registry.npmjs.org/:_authToken $NPM_TOKEN
+      #   env:
+      #     NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      # - name: Release 💎
+      #   run: pnpm run release
