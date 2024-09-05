@@ -9,6 +9,8 @@ export type DraggableProps = AnimatedProps<ViewProps> &
   Partial<DraggableConstraints> & {
     animatedStyleWorklet?: AnimatedStyleWorklet;
     activeOpacity?: number;
+    activeColor?: string;
+    borderColor?: string;
   };
 
 /**
@@ -38,6 +40,8 @@ export const Draggable: FunctionComponent<PropsWithChildren<DraggableProps>> = (
   disabled,
   style,
   activeOpacity = 0.9,
+  activeColor,
+  borderColor,
   activationDelay,
   activationTolerance,
   animatedStyleWorklet,
@@ -56,6 +60,21 @@ export const Draggable: FunctionComponent<PropsWithChildren<DraggableProps>> = (
     const isActing = state.value === "acting";
     const zIndex = isActive ? 999 : isActing ? 998 : 1;
     const style = {
+      borderRadius: 8,
+      ...(isActive
+        ? {
+            borderStyle: "dashed" as "solid" | "dotted" | "dashed" | undefined,
+            overflow: "hidden" as "visible" | "hidden" | undefined,
+            borderWidth: 1,
+            padding: 0,
+            borderColor: borderColor,
+            backgroundColor: activeColor,
+          }
+        : {
+            padding: 1,
+            borderWidth: 0,
+            backgroundColor: "transparent",
+          }),
       opacity: isActive ? activeOpacity : 1,
       zIndex,
       transform: [
@@ -71,6 +90,7 @@ export const Draggable: FunctionComponent<PropsWithChildren<DraggableProps>> = (
             ? offset.y.value
             : withSpring(offset.y.value, { damping: 100, stiffness: 1000 }),
         },
+        { rotate: isActive ? "-2deg" : "0deg" },
       ],
     };
     if (animatedStyleWorklet) {

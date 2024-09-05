@@ -29,7 +29,8 @@
     "prettycheck": "prettier --check src/ test/",
     "typecheck": "tsc --noEmit",
     "test": "npm run typecheck && npm run spec && npm run lint && npm run prettycheck",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "yalc:publish": "npm run build && rm -rf ~/.yalc/packages && yalc publish --private"
   },
   "peerDependencies": {
     "react": ">=17",
@@ -80,5 +81,8 @@
     "github": {
       "release": true
     }
+  },
+  "dependencies": {
+    "debounce": "^2.1.0"
   }
 }

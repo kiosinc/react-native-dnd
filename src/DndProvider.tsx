@@ -1,5 +1,13 @@
+import debounce from "debounce";
 import React, { forwardRef, PropsWithChildren, useImperativeHandle, useMemo, useRef } from "react";
-import { LayoutRectangle, StyleProp, View, ViewStyle } from "react-native";
+import {
+  LayoutRectangle,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  ScrollView,
+  StyleProp,
+  ViewStyle,
+} from "react-native";
 import {
   Gesture,
   GestureDetector,
@@ -62,6 +70,7 @@ export type DndProviderProps = {
   hapticFeedback?: HapticFeedbackTypes;
   style?: StyleProp<ViewStyle>;
   debug?: boolean;
+  contentContainerStyle?: StyleProp<ViewStyle>;
 };
 
 export type DndProviderHandle = Pick<
@@ -84,10 +93,37 @@ export const DndProvider = forwardRef<DndProviderHandle, PropsWithChildren<DndPr
       onFinalize,
       style,
       debug,
+      contentContainerStyle,
     },
     ref,
   ) {
-    const containerRef = useRef<View | null>(null);
+    // Custom Shared values
+    const scrollViewHeight = useSharedValue(0);
+    const yValue = useSharedValue(0);
+    const yValueOnBegin = useSharedValue(0);
+
+    const handleScrollToTop = debounce(
+      () => {
+        containerRef.current?.scrollTo({ x: 0, y: 0, animated: true });
+      },
+      1000,
+      { immediate: true },
+    );
+
+    const handleScrollToEnd = debounce(
+      () => {
+        containerRef.current?.scrollToEnd({ animated: true });
+      },
+      1000,
+      { immediate: true },
+    );
+
+    const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      // Get the Y position from the scroll event
+      yValue.value = event.nativeEvent.contentOffset.y;
+    };
+
+    const containerRef = useRef<ScrollView | null>(null);
     const draggableLayouts = useSharedValue<Layouts>({});
     const droppableLayouts = useSharedValue<Layouts>({});
     const draggableOptions = useSharedValue<DraggableOptions>({});
@@ -156,7 +192,9 @@ export const DndProvider = forwardRef<DndProviderHandle, PropsWithChildren<DndPr
     const panGesture = useMemo(() => {
       const findActiveLayoutId = (point: Point): UniqueIdentifier | null => {
         "worklet";
-        const { x, y } = point;
+        const { x } = point;
+        // considering scroll offset
+        const y = point.y + yValue.value;
         const { value: layouts } = draggableLayouts;
         const { value: offsets } = draggableOffsets;
         const { value: options } = draggableOptions;
@@ -190,7 +228,6 @@ export const DndProvider = forwardRef<DndProviderHandle, PropsWithChildren<DndPr
         }
         return null;
       };
-
       // Helpers for delayed activation (eg. long press)
       let timeout: ReturnType<typeof setTimeout> | null = null;
       const clearActiveIdTimeout = () => {
@@ -211,13 +248,12 @@ export const DndProvider = forwardRef<DndProviderHandle, PropsWithChildren<DndPr
 
       const panGesture = Gesture.Pan()
         .onBegin((event) => {
+          yValueOnBegin.value = yValue.value;
           const { state, x, y } = event;
-          debug && console.log("begin", { state, x, y });
           // Gesture is globally disabled
           if (disabled) {
             return;
           }
-          // console.log("begin", { state, x, y });
           // Track current state for cancellation purposes
           panGestureState.value = state;
           const { value: layouts } = draggableLayouts;
@@ -252,7 +288,7 @@ export const DndProvider = forwardRef<DndProviderHandle, PropsWithChildren<DndPr
               restingOffset.y.value = activeOffset.y.value;
             }
             // Update activeId directly or with an optional delay
-            const { activationDelay } = options[activeId];
+            // const {activationDelay} = options[activeId];
             if (activationDelay > 0) {
               draggablePendingId.value = activeId;
               draggableStates.value[activeId].value = "pending";
@@ -271,9 +307,14 @@ export const DndProvider = forwardRef<DndProviderHandle, PropsWithChildren<DndPr
             }
           }
         })
-        .onUpdate((event) => {
-          // console.log(draggableStates.value);
-          const { state, translationX, translationY } = event;
+        .onTouchesMove(() => {
+          // If user moves finger before the long press happens then canceling active id.
+          if (!draggableActiveId.value) {
+            runOnJS(clearActiveIdTimeout)();
+          }
+        })
+        .onChange((event) => {
+          const { state, translationX, translationY, x, y } = event;
           debug && console.log("update", { state, translationX, translationY });
           // Track current state for cancellation purposes
           panGestureState.value = state;
@@ -297,10 +338,18 @@ export const DndProvider = forwardRef<DndProviderHandle, PropsWithChildren<DndPr
             // Ignore item-free interactions
             return;
           }
+
+          if (y <= 0) {
+            runOnJS(handleScrollToTop)();
+          } else if (y >= scrollViewHeight.value - 20) {
+            runOnJS(handleScrollToEnd)();
+          }
+          const translationYScroll = translationY + yValue.value - yValueOnBegin.value;
+
           // Update our active offset to pan the active item
           const activeOffset = offsets[activeId];
           activeOffset.x.value = draggableInitialOffset.x.value + translationX;
-          activeOffset.y.value = draggableInitialOffset.y.value + translationY;
+          activeOffset.y.value = draggableInitialOffset.y.value + translationYScroll;
           // Check potential droppable candidates
           const activeLayout = layouts[activeId].value;
           draggableActiveLayout.value = applyOffset(activeLayout, {
@@ -370,7 +419,7 @@ export const DndProvider = forwardRef<DndProviderHandle, PropsWithChildren<DndPr
               if (
                 panGestureState.value !== State.END &&
                 panGestureState.value !== State.FAILED &&
-                states[activeId].value !== "acting"
+                states?.[activeId]?.value !== "acting"
               ) {
                 return;
               }
@@ -406,9 +455,24 @@ export const DndProvider = forwardRef<DndProviderHandle, PropsWithChildren<DndPr
     return (
       <DndContext.Provider value={contextValue.current}>
         <GestureDetector gesture={panGesture}>
-          <View ref={containerRef} collapsable={false} style={style} testID="view">
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            onScroll={handleScroll}
+            onLayout={({
+              nativeEvent: {
+                layout: { height },
+              },
+            }) => {
+              scrollViewHeight.value = height;
+            }}
+            ref={containerRef}
+            collapsable={false}
+            style={style}
+            testID="view"
+            contentContainerStyle={contentContainerStyle}
+          >
             {children}
-          </View>
+          </ScrollView>
         </GestureDetector>
       </DndContext.Provider>
     );
