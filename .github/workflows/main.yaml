@@ -33,9 +33,16 @@ jobs:
         run: pnpm -v
       - name: Build 💎
         run: pnpm run build
+
+      - name: Set up Git
+        run: |
+          git config --global user.email "sangames.somawar@bigbinary.com"
+          git config --global user.name "Sangamesh Somawar"
+
       - name: Initialise the NPM config
         run: npm config set //registry.npmjs.org/:_authToken $NPM_TOKEN
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          
       - name: Release 💎
         run: pnpm run release
