@@ -3,7 +3,10 @@
   "version": "2.2.0",
   "description": "Modern and easy-to-use drag&drop library for react-native",
   "author": "Olivier Louvignes <olivier@mgcrea.io>",
-  "repository": "github:mgcrea/react-native-dnd",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kiosinc/react-native-dnd.git"
+  },
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
