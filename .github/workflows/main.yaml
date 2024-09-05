@@ -28,7 +28,7 @@ jobs:
           check-latest: true
           cache: "pnpm"
       - name: Install 🪄
-        run: pnpm install --frozen-lockfile
+        run: pnpm install
       - name: Build 💎
         run: pnpm run build
       - name: Release 💎
