@@ -103,6 +103,7 @@ export const useDraggable = ({
 
   const onLayout: ViewProps["onLayout"] = () => {
     assert(containerRef.current);
+    // @ts-expect-error ignore types
     node.current?.measureLayout(containerRef.current, (x, y, width, height) => {
       layout.value = { x, y, width, height };
     });

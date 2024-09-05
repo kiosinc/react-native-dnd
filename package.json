@@ -1,9 +1,12 @@
 {
-  "name": "@mgcrea/react-native-dnd",
-  "version": "2.2.0",
+  "name": "@kiosinc/react-native-dnd",
+  "version": "2.2.3",
   "description": "Modern and easy-to-use drag&drop library for react-native",
   "author": "Olivier Louvignes <olivier@mgcrea.io>",
-  "repository": "github:mgcrea/react-native-dnd",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kiosinc/react-native-dnd.git"
+  },
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
@@ -20,12 +23,14 @@
     "build:tsup": "tsup src/index.ts --format cjs,esm --sourcemap --dts --clean",
     "watch": "npm run build -- --watch",
     "prettify": "prettier --write src/ test/",
+    "release": "release-it",
     "lint": "eslint src/ test/",
     "spec": "jest",
     "prettycheck": "prettier --check src/ test/",
     "typecheck": "tsc --noEmit",
     "test": "npm run typecheck && npm run spec && npm run lint && npm run prettycheck",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "yalc:publish": "npm run build && rm -rf ~/.yalc/packages && yalc publish --private"
   },
   "peerDependencies": {
     "react": ">=17",
@@ -40,6 +45,7 @@
     "@babel/preset-env": "^7.23.3",
     "@babel/runtime": "^7.23.4",
     "@mgcrea/eslint-config-react-native": "^0.8.6",
+    "@release-it/conventional-changelog": "^8.0.1",
     "@testing-library/jest-native": "^5.4.3",
     "@testing-library/react-native": "^12.4.0",
     "@tsconfig/react-native": "^3.0.2",
@@ -59,8 +65,24 @@
     "react-native-haptic-feedback": "^2.2.0",
     "react-native-reanimated": "3.5.4",
     "react-test-renderer": "^18.2.0",
+    "release-it": "^17.6.0",
     "tsc-alias": "^1.8.8",
     "tsup": "^8.0.0",
     "typescript": "^5.3.2"
+  },
+  "release-it": {
+    "git": {
+      "commitMessage": "chore: release ${version}",
+      "tagName": "v${version}"
+    },
+    "npm": {
+      "publish": true
+    },
+    "github": {
+      "release": true
+    }
+  },
+  "dependencies": {
+    "debounce": "^2.1.0"
   }
 }

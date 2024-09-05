@@ -1,5 +1,5 @@
 import { createContext, useContext, type RefObject } from "react";
-import type { LayoutRectangle, View } from "react-native";
+import type { LayoutRectangle, ScrollView, ScrollViewComponent, View } from "react-native";
 import type { GestureEventPayload } from "react-native-gesture-handler";
 import type { SharedValue } from "react-native-reanimated";
 import type { DraggableConstraints, SharedPoint } from "./hooks";
@@ -15,7 +15,7 @@ export type DraggableState = "resting" | "pending" | "dragging" | "dropping" | "
 export type DraggableStates = Record<UniqueIdentifier, SharedValue<DraggableState>>;
 
 export type DndContextValue = {
-  containerRef: RefObject<View>;
+  containerRef: RefObject<ScrollView>;
   draggableLayouts: SharedValue<Layouts>;
   droppableLayouts: SharedValue<Layouts>;
   draggableOptions: SharedValue<DraggableOptions>;
