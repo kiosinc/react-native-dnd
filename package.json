@@ -20,6 +20,7 @@
     "build:tsup": "tsup src/index.ts --format cjs,esm --sourcemap --dts --clean",
     "watch": "npm run build -- --watch",
     "prettify": "prettier --write src/ test/",
+    "release": "release-it",
     "lint": "eslint src/ test/",
     "spec": "jest",
     "prettycheck": "prettier --check src/ test/",
