@@ -326,7 +326,7 @@ export const DndProvider = forwardRef<DndProviderHandle, PropsWithChildren<DndPr
           // const { value: states } = draggableStates;
           if (activeId === null) {
             // Check if we are currently waiting for activation delay
-            if (pendingId !== null) {
+            if (pendingId !== null && options?.[pendingId]) {
               const { activationTolerance } = options[pendingId];
               // Check if we've moved beyond the activation tolerance
               const distance = getDistance(translationX, translationY);
